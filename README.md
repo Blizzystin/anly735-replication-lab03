@@ -2,7 +2,6 @@
 
 ## When the Test Environment Changes
 
-**Researcher:** Arvind Natarajan  
 **Replication type:** Partial replication of the WILDS distribution-shift evaluation logic
 
 ## Replication Question
