@@ -1,0 +1,128 @@
+---
+title: "ANLY 735 Replication Laboratory #3"
+subtitle: "When the Test Environment Changes"
+author: "Arvind Natarajan"
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  enabled: false
+---
+
+## Replication Question
+
+What happens to the conclusions about a fixed toxicity classifier when evaluation moves from a source-like in-distribution holdout to a shifted CivilComments-WILDS test environment?
+
+The narrow claim is that generalization is conditional on the evaluation environment: a model can retain strong population-average performance while remaining substantially less reliable for particular subpopulations.
+
+## Evidence Environment
+
+Because no course starter repository or supplied dataset was attached to the assignment materials available for this submission, I selected CivilComments-WILDS as a manageable benchmark that directly instantiates the Week 8 distribution-shift problem.
+
+The official WILDS training split is treated as the development environment. A stratified 20% holdout from that split is used for in-distribution evaluation. The official WILDS test split is kept untouched during fitting and used as the shifted environment.
+
+This is a **partial replication**. It reproduces the WILDS evaluation logic, but not the original transformer architecture or exact benchmark comparison.
+
+## Replication Strategy and Reproducible Method
+
+The predictive pipeline is deliberately simple and fixed:
+
+- TF-IDF word unigrams and bigrams
+- maximum vocabulary of 30,000 features
+- L2-regularized logistic regression
+- `C = 1.0`
+- `liblinear`
+- fixed probability threshold of 0.50
+- random seed 735
+
+The model is fitted once on the development data. The vectorizer, classifier, threshold, and metric definitions remain unchanged for both evaluation environments.
+
+The complete executable analysis is contained in `python/lab03_analysis.py` and the executed notebook.
+
+## ID vs. Shifted Performance
+
+| Metric | In-Distribution | Shifted Environment | Change |
+|---|---:|---:|---:|
+| ROC-AUC | 0.9027 | 0.9030 | +0.0003 |
+| PR-AUC | 0.6289 | 0.6302 | +0.0013 |
+| Brier score | 0.0650 | 0.0650 | 0.0000 |
+| Expected calibration error | 0.0255 | 0.0265 | +0.0010 |
+| Accuracy | 0.9124 | 0.9127 | +0.0003 |
+| Balanced accuracy | 0.6515 | 0.6549 | +0.0034 |
+| Precision | 0.7844 | 0.7826 | -0.0018 |
+| Recall | 0.3141 | 0.3212 | +0.0072 |
+| Worst-group accuracy | 0.2203 | 0.2552 | +0.0348 |
+
+The headline result is not a broad performance collapse. Aggregate discrimination, calibration, and accuracy are remarkably stable across the two evaluation environments.
+
+## Look Beneath the Average
+
+The subgroup analysis changes the interpretation of those aggregate results. The weakest identity-by-label group in both environments is the positive class among comments mentioning Christians.
+
+At the fixed 0.50 threshold, accuracy for that group is 0.2203 in the ID holdout and 0.2552 in the shifted test set. Because all observations in this group are toxic, this quantity is also recall. The shifted result therefore means that the model identifies only about one quarter of toxic Christian-mention comments.
+
+Average robustness and subgroup robustness are empirically different claims.
+
+## Diagnose the Shift
+
+Toxicity prevalence is 11.34% in the ID holdout and 11.37% in the shifted test set. The share of comments mentioning at least one tracked identity changes from 40.22% to 39.30%, while median comment length changes from 45 to 44 words.
+
+The largest identity-composition difference is for female mentions, which decline by 1.15 percentage points. The largest observed difference in mean TF-IDF weight is also small, less than 0.001.
+
+These diagnostics do not prove that the environments are equivalent, nor can they establish whether the conditional relationship between text and toxicity changed. They do, however, help explain why aggregate performance remains so stable.
+
+## Deployment Judgment
+
+### REVALIDATE
+
+I would not deploy the classifier unchanged. Aggregate performance remains strong, but subgroup performance is too weak for an unqualified deployment claim.
+
+Before deployment, I would require:
+
+- a protected labeled target sample;
+- subgroup sensitivity and calibration estimates;
+- threshold analysis by identity group;
+- replication across multiple seeds or development splits; and
+- external validation if the intended application extends beyond CivilComments.
+
+## Replication Verdict
+
+### Partially Reproduced
+
+The replication reproduces the central WILDS warning that strong population-average performance can coexist with severe subpopulation failure.
+
+It does not reproduce a broad ID-to-OOD performance collapse. Aggregate ID and shifted performance are nearly indistinguishable in this experiment. The reproduced component is therefore narrower: average generalization is not sufficient evidence of subgroup robustness.
+
+## Limitations and Claim Boundary
+
+The evidence supports a bounded claim: for this CivilComments-WILDS analysis and this fixed TF-IDF logistic-regression pipeline, aggregate performance is stable across the two evaluation environments while subgroup performance remains highly heterogeneous.
+
+The experiment does not establish that CivilComments contains no meaningful distribution shift, that logistic regression is generally robust to OOD data, or that identity itself causes the observed subgroup error.
+
+The ID comparator is also a stratified holdout constructed from the official training split rather than the exact CivilComments comparator used by Koh et al. (2021). This limits direct numerical comparability with the published benchmark.
+
+## Extension: What I Would Test Next
+
+A useful extension would hold the fitted model and predictions fixed while systematically changing the mixture of identity-by-label groups in the evaluation population.
+
+This would test how quickly apparently stable aggregate performance becomes operationally unreliable as the target population places greater weight on a subgroup the model already serves poorly.
+
+## Session Information
+
+The executed analysis used:
+
+- Python 3.13.16
+- NumPy 2.1.3
+- pandas 2.2.3
+- scikit-learn 1.6.1
+- datasets 4.8.5
+- pyarrow 23.0.1
+- seed 735
+- data source: `pietrolesci/civilcomments-wilds`
+
+## References
+
+Koh, P. W., Sagawa, S., Marklund, H., et al. (2021). WILDS: A benchmark of in-the-wild distribution shifts. *Proceedings of the 38th International Conference on Machine Learning, 139*, 5637-5664.
+
+Borkan, D., Dixon, L., Sorensen, J., Thain, N., & Vasserman, L. (2019). Nuanced metrics for measuring unintended bias with real data for text classification. *Companion Proceedings of The 2019 World Wide Web Conference*, 491-500.
