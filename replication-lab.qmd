@@ -1,7 +1,6 @@
 ---
 title: "ANLY 735 Replication Laboratory #3"
 subtitle: "When the Test Environment Changes"
-author: "Arvind Natarajan"
 format:
   html:
     toc: true
