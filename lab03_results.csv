@@ -1,0 +1,11 @@
+Metric,In-Distribution,Shifted Environment,Change (OOD - ID)
+ROC-AUC,0.9027,0.903,0.0003
+PR-AUC,0.6289,0.6302,0.0013
+Brier,0.065,0.065,0.0
+ECE,0.0255,0.0265,0.001
+Accuracy,0.9124,0.9127,0.0003
+Balanced Accuracy,0.6515,0.6549,0.0034
+Precision,0.7844,0.7826,-0.0018
+Recall,0.3141,0.3212,0.0072
+F1,0.4485,0.4555,0.007
+Worst-group accuracy,0.2203,0.2552,0.0348
