@@ -45,11 +45,10 @@ The important result appears below the average: the weakest identity-label subgr
 
 ```text
 .
-├── analysis/
-│   ├── lab03_results.csv
-│   └── lab03_subgroup_metrics.csv
-├── python/
-│   └── lab03_analysis.py
+├
+│── lab03_results.csv
+│── lab03_subgroup_metrics.csv
+├── lab03_analysis.py
 ├── ANLY735_Replication_Lab_03_CivilComments_WILDS.ipynb
 ├── Replication_Lab_3_Final.docx
 ├── replication-lab.qmd
